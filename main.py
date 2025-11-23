@@ -57,10 +57,14 @@ def get_gspread_client():
 # Read all rows from sheet with caching
 @cached(cache)
 def get_all_rows():
-    client = get_gspread_client()
-    sheet = client.open_by_key(SPREADSHEET_ID)
-    ws = sheet.sheet1  # first sheet
-    return ws.get_all_records()
+    try:
+        client = get_gspread_client()
+        sheet = client.open_by_key(SPREADSHEET_ID)
+        ws = sheet.sheet1  # first sheet
+        return ws.get_all_records()
+    except Exception as e:
+        print("ERROR reading Google Sheet:", repr(e))
+        raise HTTPException(status_code=500, detail=f"Failed to read sheet: {repr(e)}")
 
 # Map a row from Google Sheet into structured JSON
 def map_row_to_dog(row, idx):
