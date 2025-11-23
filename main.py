@@ -35,20 +35,24 @@ class DogProfile(BaseModel):
 
 # Create gspread client from service account JSON
 def get_gspread_client():
-    service_json = os.getenv("GOOGLE_SERVICE_KEY")
-
-    if not service_json:
-        raise RuntimeError("Missing GOOGLE_SERVICE_KEY environment variable")
-
-    # Convert JSON string → Python dict
-    credentials_dict = json.loads(service_json)
-
-    # Write credentials to a temporary file (gspread requires a filename)
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp:
-        temp.write(json.dumps(credentials_dict).encode("utf-8"))
-        temp_path = temp.name
-
-    return gspread.service_account(filename=temp_path)
+    try:
+        service_json = os.getenv("GOOGLE_SERVICE_KEY")
+    
+        if not service_json:
+            raise RuntimeError("Missing GOOGLE_SERVICE_KEY environment variable")
+    
+        # Convert JSON string → Python dict
+        credentials_dict = json.loads(service_json)
+    
+        # Write credentials to a temporary file (gspread requires a filename)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp:
+            temp.write(json.dumps(credentials_dict).encode("utf-8"))
+            temp_path = temp.name
+    
+        return gspread.service_account(filename=temp_path)
+    except Exception as e:
+        print("ERROR in get_gspread_client:", repr(e))  # Logs full error
+        raise RuntimeError(f"Failed to create gspread client: {repr(e)}")
 
 # Read all rows from sheet with caching
 @cached(cache)
